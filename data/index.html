@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>BruteForce Wi-Fi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background-color: #111;
+      color: #0f0;
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    .section {
+      margin-top: 20px;
+      border: 1px solid #0f0;
+      padding: 15px;
+      border-radius: 10px;
+    }
+    input[type="file"], input[type="text"], input[type="password"] {
+      width: 90%;
+      padding: 8px;
+      margin: 10px 0;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      background: #0f0;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0c0;
+    }
+    .settings {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 20px;
+      cursor: pointer;
+      color: #0f0;
+    }
+    #settingsPanel {
+      display: none;
+      background-color: #222;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="settings" onclick="toggleSettings()">⚙️</div>
+
+  <h1>BruteForce Wi-Fi</h1>
+  <div class="section">
+    <h3>Upload Wordlist</h3>
+    <form id="uploadForm">
+      <input type="file" name="file" id="file">
+      <br>
+      <button type="submit">Upload</button>
+    </form>
+    <p id="uploadStatus"></p>
+  </div>
+
+  <div class="section">
+    <h3>Mode Brute Force</h3>
+    <button onclick="startBruteForce('auto')">Mulai Otomatis</button>
+    <button onclick="startBruteForce('manual')">Pilih Manual</button>
+  </div>
+
+  <div id="settingsPanel" class="section">
+    <h3>Pengaturan Access Point</h3>
+    <input type="text" id="ssid" placeholder="SSID Baru">
+    <input type="password" id="password" placeholder="Password Baru">
+    <button onclick="setAP()">Simpan</button>
+    <p id="apStatus"></p>
+  </div>
+
+  <script>
+    function toggleSettings() {
+      var panel = document.getElementById("settingsPanel");
+      panel.style.display = panel.style.display === "none" ? "block" : "none";
+    }
+
+    document.getElementById("uploadForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var fileInput = document.getElementById("file");
+      var file = fileInput.files[0];
+      var formData = new FormData();
+      formData.append("file", file);
+
+      fetch("/upload", {
+        method: "POST",
+        body: formData
+      }).then(response => response.text())
+        .then(result => {
+          document.getElementById("uploadStatus").innerText = result;
+        }).catch(error => {
+          document.getElementById("uploadStatus").innerText = "Gagal upload!";
+        });
+    });
+
+    function startBruteForce(mode) {
+      fetch("/start?mode=" + mode)
+        .then(res => res.text())
+        .then(txt => alert("Brute Force dimulai: " + txt))
+        .catch(() => alert("Gagal memulai!"));
+    }
+
+    function setAP() {
+      const ssid = document.getElementById("ssid").value;
+      const password = document.getElementById("password").value;
+      fetch("/setap?ssid=" + ssid + "&pass=" + password)
+        .then(res => res.text())
+        .then(msg => {
+          document.getElementById("apStatus").innerText = msg;
+        }).catch(() => {
+          document.getElementById("apStatus").innerText = "Gagal menyimpan pengaturan.";
+        });
+    }
+  </script>
+</body>
+</html>
